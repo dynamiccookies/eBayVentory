@@ -41,6 +41,9 @@ function convert_date($iso_datetime_str, $target_timezone = 'America/Chicago') {
     // Format the datetime and return
     return $datetime->format('Y-m-d H:i:s');
 }
+function sanitize_input($conn, $input) {
+    return $conn->real_escape_string($input);
+}
 
 function transaction_exists($conn, $transaction_id, $booking_entry, $transaction_type) {
     $transaction_id = sanitize_input($conn, $transaction_id);
@@ -90,33 +93,30 @@ function runScript() {
 
             // Prepare and execute SQL INSERT statement for each transaction
             foreach ($transactions['transactions'] as $transaction) {
-                $transaction_id       = isset($transaction['transactionId'])        ? $transaction['transactionId']                 : '';
-                $orderId              = isset($transaction['orderId'])              ? $transaction['orderId']                       : '';
-                $payoutId             = isset($transaction['payoutId'])             ? $transaction['payoutId']                      : '';
-                $salesRecordReference = isset($transaction['salesRecordReference']) ? $transaction['salesRecordReference']          : '';
-                $buyer_username       = isset($transaction['buyer']['username'])    ? $transaction['buyer']['username']             : '';
-                $transactionType      = isset($transaction['transactionType'])      ? $transaction['transactionType']               : '';
-                $amount_value         = isset($transaction['amount']['value'])      ? $transaction['amount']['value']               : '';
-                $bookingEntry         = isset($transaction['bookingEntry'])         ? $transaction['bookingEntry']                  : '';
-                $transactionDate      = isset($transaction['transactionDate'])      ? convert_date($transaction['transactionDate']) : '';
-                $transactionStatus    = isset($transaction['transactionStatus'])    ? $transaction['transactionStatus']             : '';
-                $transactionMemo      = isset($transaction['transactionMemo'])      ? $transaction['transactionMemo']               : '';
-                $paymentsEntity       = isset($transaction['paymentsEntity'])       ? $transaction['paymentsEntity']                : '';
-                $references           = isset($transaction['references'])           ? json_encode($transaction['references'])       : '';
-                $feeType              = isset($transaction['feeType'])              ? $transaction['feeType']                       : '';
-                $transaction          = json_encode($transaction);
-
+                $transaction_id       = isset($transaction['transactionId'])        ? sanitize_input($conn, $transaction['transactionId'])           : '';
+                $orderId              = isset($transaction['orderId'])              ? sanitize_input($conn, $transaction['orderId'])                 : '';
+                $payoutId             = isset($transaction['payoutId'])             ? sanitize_input($conn, $transaction['payoutId'])                : '';
+                $salesRecordReference = isset($transaction['salesRecordReference']) ? sanitize_input($conn, $transaction['salesRecordReference'])    : '';
+                $buyer_username       = isset($transaction['buyer']['username'])    ? sanitize_input($conn, $transaction['buyer']['username'])       : '';
+                $transactionType      = isset($transaction['transactionType'])      ? sanitize_input($conn, $transaction['transactionType'])         : '';
+                $amount_value         = isset($transaction['amount']['value'])      ? sanitize_input($conn, $transaction['amount']['value'])         : '';
+                $bookingEntry         = isset($transaction['bookingEntry'])         ? sanitize_input($conn, $transaction['bookingEntry'])            : '';
+                $transactionDate      = isset($transaction['transactionDate'])      ? convert_date($transaction['transactionDate'])                  : '';
+                $transactionStatus    = isset($transaction['transactionStatus'])    ? sanitize_input($conn, $transaction['transactionStatus'])       : '';
+                $transactionMemo      = isset($transaction['transactionMemo'])      ? sanitize_input($conn, $transaction['transactionMemo'])         : '';
+                $paymentsEntity       = isset($transaction['paymentsEntity'])       ? sanitize_input($conn, $transaction['paymentsEntity'])          : '';
+                $references           = isset($transaction['references'])           ? sanitize_input($conn, json_encode($transaction['references'])) : '';
+                $feeType              = isset($transaction['feeType'])              ? sanitize_input($conn, $transaction['feeType'])                 : '';
+                $transaction          = sanitize_input($conn, json_encode($transaction));
 
                 // Check if transaction already exists
                 if (!transaction_exists($conn, $transaction_id, $bookingEntry, $transactionType)) {
                     // Sanitize the data and insert the transaction into the database
                     $sql = "INSERT INTO transactions (transaction_id, order_id, payout_id, sales_record_reference, buyer_username, transaction_type, amount_value, booking_entry, transaction_date, transaction_status, transaction_memo, payments_entity, references_json, fee_type, json) 
                             VALUES ('$transaction_id', '$orderId', '$payoutId', '$salesRecordReference', '$buyer_username', '$transactionType', '$amount_value', '$bookingEntry', '$transactionDate', '$transactionStatus', '$transactionMemo', '$paymentsEntity', '$references', '$feeType', '$transaction')";
-                    $sql = $conn->real_escape_string($sql);
 
-                    if ($conn->query($sql) === TRUE) {$added += 1;} 
-					else {echo "Error: " . $sql . "<br>" . $conn->error;}
-                }
+                    if ($conn->query($sql) === TRUE) {$added += 1;}
+                    else {echo "Error: " . $sql . "<br>" . $conn->error;}
                 
                 $total += 1;
             }
