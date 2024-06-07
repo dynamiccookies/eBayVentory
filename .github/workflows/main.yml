@@ -1,0 +1,23 @@
+on:
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+name: 🚀 Deploy PROD website on pull request
+jobs:
+  web-deploy:
+    name: 🎉 Deploy
+    runs-on: ubuntu-latest
+    steps:
+    - name: 🚚 Get latest code
+      uses: actions/checkout@v4
+    
+    - name: 📂 Sync files
+      uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+      with:
+        server:   ${{ secrets.PROD_FTP_SERVER }}
+        username: ${{ secrets.PROD_FTP_USERNAME }}
+        password: ${{ secrets.PROD_FTP_PASSWORD }}
+        server-dir: /
+        exclude:
+          db_config.php
