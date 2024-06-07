@@ -117,7 +117,7 @@ function runScript() {
 
                     if ($conn->query($sql) === TRUE) {$added += 1;}
                     else {echo "Error: " . $sql . "<br>" . $conn->error;}
-                
+                }
                 $total += 1;
             }
             $conn->close();
@@ -128,8 +128,8 @@ function runScript() {
             echo "Failed to fetch transactions. HTTP Status Code: " . $httpCode;
         }
     }
-    
-curl_close($ch);
+
+    curl_close($ch);
 }
 
 // Check if running via CLI for cron job
