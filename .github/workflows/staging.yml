@@ -1,9 +1,9 @@
 on:
-  push:
+  pull_request:
     branches:
-      - dev
+      - staging
   workflow_dispatch:
-name: 🚀 Deploy DEV website on push
+name: 🚀 Deploy STAGING website on push
 jobs:
   web-deploy:
     name: 🎉 Deploy
@@ -18,6 +18,6 @@ jobs:
         server:   ${{ secrets.DEV_FTP_SERVER }}
         username: ${{ secrets.DEV_FTP_USERNAME }}
         password: ${{ secrets.DEV_FTP_PASSWORD }}
-        server-dir: /dev/
+        server-dir: /staging/
         exclude:
           db_config.php
