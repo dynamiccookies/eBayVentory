@@ -2,12 +2,15 @@ on:
   pull_request:
     branches:
       - main
+    types:
+      - closed
   workflow_dispatch:
-name: 🚀 Deploy PROD website on pull request
+name: 🚀 Deploy PROD website on pull request merge or manual trigger
 jobs:
   web-deploy:
     name: 🎉 Deploy
     runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch' || (github.event_name == 'pull_request' && github.event.pull_request.merged == true)
     steps:
     - name: 🚚 Get latest code
       uses: actions/checkout@v4
@@ -19,5 +22,4 @@ jobs:
         username: ${{ secrets.PROD_FTP_USERNAME }}
         password: ${{ secrets.PROD_FTP_PASSWORD }}
         server-dir: /
-        exclude:
-          db_config.php
+        exclude: db_config.php
