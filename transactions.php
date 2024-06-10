@@ -109,18 +109,18 @@ function runScript() {
                 $feeType              = isset($transaction['feeType'])              ? sanitize_input($conn, $transaction['feeType'])                 : '';
                 $transaction          = sanitize_input($conn, json_encode($transaction));
 
-				// Check if orderId is blank and references field exists
-				if (empty($orderId) && isset($transaction['references'])) {
-					$referencesArray = json_decode($transaction['references'], true);
-					if (is_array($referencesArray)) {
-						foreach ($referencesArray as $reference) {
-							if (isset($reference['referenceType']) && $reference['referenceType'] === 'ORDER_ID') {
-								$orderId = sanitize_input($conn, $reference['referenceId']);
-								break;
-							}
-						}
-					}
-				}
+                // Check if orderId is blank and references field exists
+                if (empty($orderId) && isset($transaction['references'])) {
+                    $referencesArray = json_decode($transaction['references'], true);
+                    if (is_array($referencesArray)) {
+                        foreach ($referencesArray as $reference) {
+                            if (isset($reference['referenceType']) && $reference['referenceType'] === 'ORDER_ID') {
+                                $orderId = sanitize_input($conn, $reference['referenceId']);
+                                break;
+                            }
+                        }
+                    }
+                }
 
                 // Check if transaction already exists
                 if (!transaction_exists($conn, $transaction_id, $bookingEntry, $transactionType)) {
