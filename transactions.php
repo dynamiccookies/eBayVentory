@@ -89,7 +89,7 @@ function runScript() {
                 createTransactionsTable($conn);
             }
 
-            $added = $total = 0;
+            $added = $updated = $total = 0;
 
             // Prepare and execute SQL INSERT statement for each transaction
             foreach ($transactions['transactions'] as $transaction) {
@@ -129,14 +129,46 @@ function runScript() {
                             VALUES ('$transaction_id', '$orderId', '$payoutId', '$salesRecordReference', '$buyer_username', '$transactionType', '$amount_value', '$bookingEntry', '$transactionDate', '$transactionStatus', '$transactionMemo', '$paymentsEntity', '$references', '$feeType', '$transaction')";
 
                     if ($conn->query($sql) === TRUE) {$added += 1;}
-                    else {echo "Error: " . $sql . "<br>" . $conn->error;}
+                    else {echo "Error Adding Record: " . $sql . "<br>" . $conn->error;}
+                } else {
+                    // Fetch the current orderId and transactionStatus from the database
+                    $sql                      = "SELECT order_id, transaction_status FROM transactions WHERE transaction_id = '$transaction_id' AND booking_entry = '$bookingEntry' AND transaction_type = '$transactionType'";
+                    $result                   = $conn->query($sql);
+                    $row                      = $result->fetch_assoc();
+                    $currentOrderId           = $row['order_id'];
+                    $currentTransactionStatus = $row['transaction_status'];
+
+                    // Check if orderId or transactionStatus are different
+                    if ($currentOrderId != $orderId || $currentTransactionStatus != $transactionStatus) {
+                        // Update all fields
+                        $updateSql = "UPDATE transactions SET 
+                            order_id               = '$orderId', 
+                            payout_id              = '$payoutId', 
+                            sales_record_reference = '$salesRecordReference', 
+                            buyer_username         = '$buyer_username', 
+                            transaction_type       = '$transactionType', 
+                            amount_value           = '$amount_value', 
+                            booking_entry          = '$bookingEntry', 
+                            transaction_date       = '$transactionDate', 
+                            transaction_status     = '$transactionStatus', 
+                            transaction_memo       = '$transactionMemo', 
+                            payments_entity        = '$paymentsEntity', 
+                            references_json        = '$references', 
+                            fee_type               = '$feeType', 
+                            json                   = '$transaction' 
+                            WHERE transaction_id   = '$transaction_id' AND booking_entry = '$bookingEntry' AND transaction_type = '$transactionType'";
+
+                        if ($conn->query($updateSql) === TRUE) {$updated += 1;}
+                        else {echo "Error Updating Record: " . $sql . "<br>" . $conn->error;}
+                    }
                 }
                 $total += 1;
             }
             $conn->close();
             
-            echo $added . ' out of ' . $total . ' transactions added.';
-            
+            echo $added . ' out of ' . $total . ' transactions added. ';
+            if ($updated > 0) $updated . ' transactions updated.';
+
         } else {
             echo "Failed to fetch transactions. HTTP Status Code: " . $httpCode;
         }
