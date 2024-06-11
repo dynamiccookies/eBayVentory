@@ -1,0 +1,54 @@
+on:
+  pull_request:
+    branches:
+      - main
+      - test
+      - dev
+    types:
+      - closed
+  push:
+    branches:
+      - dev
+  workflow_dispatch:
+name: 🚀 Deploy website based on branch
+jobs:
+  web-deploy:
+    name: 🎉 Deploy
+    runs-on: ubuntu-latest
+    if: |
+      github.event_name == 'workflow_dispatch' || 
+      (github.event_name == 'pull_request' && github.event.pull_request.merged == true) || 
+      (github.event_name == 'push' && contains(github.ref, 'refs/heads/dev'))
+    steps:
+    - name: 🚚 Get latest code
+      uses: actions/checkout@v4
+
+    - name: 📂 Sync files to PROD
+      if: contains(github.ref, 'refs/heads/main') || (github.event_name == 'pull_request' && contains(github.base_ref, 'main'))
+      uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+      with:
+        server:   ${{ secrets.PROD_FTP_SERVER }}
+        username: ${{ secrets.PROD_FTP_USERNAME }}
+        password: ${{ secrets.PROD_FTP_PASSWORD }}
+        server-dir: /
+        exclude: db_config.php
+
+    - name: 📂 Sync files to TEST
+      if: contains(github.ref, 'refs/heads/test') || (github.event_name == 'pull_request' && contains(github.base_ref, 'test'))
+      uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+      with:
+        server:   ${{ secrets.DEV_FTP_SERVER }}
+        username: ${{ secrets.DEV_FTP_USERNAME }}
+        password: ${{ secrets.DEV_FTP_PASSWORD }}
+        server-dir: /test/
+        exclude: db_config.php
+
+    - name: 📂 Sync files to DEV
+      if: contains(github.ref, 'refs/heads/dev')
+      uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+      with:
+        server:   ${{ secrets.DEV_FTP_SERVER }}
+        username: ${{ secrets.DEV_FTP_USERNAME }}
+        password: ${{ secrets.DEV_FTP_PASSWORD }}
+        server-dir: /dev/
+        exclude: db_config.php
