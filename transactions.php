@@ -155,9 +155,8 @@ function runScript() {
 
                 // Check if orderId is blank and references field exists
                 if (empty($orderId) && isset($transaction['references'])) {
-                    $referencesArray = json_decode($transaction['references'], true);
-                    if (is_array($referencesArray)) {
-                        foreach ($referencesArray as $reference) {
+                    if (is_array($transaction['references'])) {
+                        foreach ($transaction['references'] as $reference) {
                             if (isset($reference['referenceType']) && $reference['referenceType'] === 'ORDER_ID') {
                                 $orderId = sanitize_input($conn, $reference['referenceId']);
                             }
