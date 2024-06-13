@@ -154,12 +154,10 @@ function runScript() {
                 $fullTransaction      = sanitize_input($conn, json_encode($transaction));
 
                 // Check if orderId is blank and references field exists
-                if (empty($orderId) && isset($transaction['references'])) {
-                    if (is_array($transaction['references'])) {
-                        foreach ($transaction['references'] as $reference) {
-                            if (isset($reference['referenceType']) && $reference['referenceType'] === 'ORDER_ID') {
-                                $orderId = sanitize_input($conn, $reference['referenceId']);
-                            }
+                if (empty($orderId) && isset($transaction['references']) && is_array($transaction['references'])) {
+                    foreach ($transaction['references'] as $reference) {
+                        if (isset($reference['referenceType']) && $reference['referenceType'] === 'ORDER_ID') {
+                            $orderId = sanitize_input($conn, $reference['referenceId']);
                         }
                     }
                 }
