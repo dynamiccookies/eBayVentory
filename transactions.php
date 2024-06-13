@@ -137,11 +137,11 @@ function runScript() {
 
             // Prepare and execute SQL INSERT statement for each transaction
             foreach ($transactions['transactions'] as $transaction) {
-                $transactionId       = isset($transaction['transactionId'])        ? sanitize_input($conn, $transaction['transactionId'])           : '';
+                $transactionId        = isset($transaction['transactionId'])        ? sanitize_input($conn, $transaction['transactionId'])           : '';
                 $orderId              = isset($transaction['orderId'])              ? sanitize_input($conn, $transaction['orderId'])                 : '';
                 $payoutId             = isset($transaction['payoutId'])             ? sanitize_input($conn, $transaction['payoutId'])                : '';
                 $salesRecordReference = isset($transaction['salesRecordReference']) ? sanitize_input($conn, $transaction['salesRecordReference'])    : '';
-                $buyer_username       = isset($transaction['buyer']['username'])    ? sanitize_input($conn, $transaction['buyer']['username'])       : '';
+                $buyerUsername        = isset($transaction['buyer']['username'])    ? sanitize_input($conn, $transaction['buyer']['username'])       : '';
                 $transactionType      = isset($transaction['transactionType'])      ? sanitize_input($conn, $transaction['transactionType'])         : '';
                 $amount_value         = isset($transaction['amount']['value'])      ? sanitize_input($conn, $transaction['amount']['value'])         : '';
                 $bookingEntry         = isset($transaction['bookingEntry'])         ? sanitize_input($conn, $transaction['bookingEntry'])            : '';
@@ -168,7 +168,7 @@ function runScript() {
                 if (!transaction_exists($conn, $transactionId, $bookingEntry, $transactionType)) {
                     // Sanitize the data and insert the transaction into the database
                     $sql = "INSERT INTO transactions (transaction_id, order_id, payout_id, sales_record_reference, buyer_username, transaction_type, amount_value, booking_entry, transaction_date, transaction_status, transaction_memo, payments_entity, references_json, fee_type, json) 
-                            VALUES ('$transactionId', '$orderId', '$payoutId', '$salesRecordReference', '$buyer_username', '$transactionType', '$amount_value', '$bookingEntry', '$transactionDate', '$transactionStatus', '$transactionMemo', '$paymentsEntity', '$references', '$feeType', '$fullTransaction')";
+                            VALUES ('$transactionId', '$orderId', '$payoutId', '$salesRecordReference', '$buyerUsername', '$transactionType', '$amount_value', '$bookingEntry', '$transactionDate', '$transactionStatus', '$transactionMemo', '$paymentsEntity', '$references', '$feeType', '$fullTransaction')";
 
                     if ($conn->query($sql) === TRUE) {$added += 1;}
                     else {echo "Error Adding Record: " . $sql . "<br>" . $conn->error;}
@@ -187,7 +187,7 @@ function runScript() {
                             order_id               = '$orderId', 
                             payout_id              = '$payoutId', 
                             sales_record_reference = '$salesRecordReference', 
-                            buyer_username         = '$buyer_username', 
+                            buyer_username         = '$buyerUsername', 
                             transaction_type       = '$transactionType', 
                             amount_value           = '$amount_value', 
                             booking_entry          = '$bookingEntry', 
