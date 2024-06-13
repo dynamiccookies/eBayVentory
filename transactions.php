@@ -160,7 +160,6 @@ function runScript() {
                         foreach ($referencesArray as $reference) {
                             if (isset($reference['referenceType']) && $reference['referenceType'] === 'ORDER_ID') {
                                 $orderId = sanitize_input($conn, $reference['referenceId']);
-                                break;
                             }
                         }
                     }
