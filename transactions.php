@@ -70,14 +70,14 @@ function sanitize_input($conn, $input) {
  * Checks if a transaction with the specified transaction ID, booking entry, and transaction type exists in the 'transactions' table.
  *
  * @param mysqli $conn The database connection object.
- * @param string $transaction_id The transaction ID to check.
+ * @param string $transactionId The transaction ID to check.
  * @param string $booking_entry The booking entry to check.
  * @param string $transaction_type The transaction type to check.
  * @return bool True if the transaction exists, false otherwise.
  */
-function transaction_exists($conn, $transaction_id, $booking_entry, $transaction_type) {
-    $transaction_id = sanitize_input($conn, $transaction_id);
-    $sql = "SELECT transaction_id FROM transactions WHERE transaction_id = '$transaction_id' AND booking_entry = '$booking_entry' AND transaction_type = '$transaction_type' LIMIT 1";
+function transaction_exists($conn, $transactionId, $booking_entry, $transaction_type) {
+    $transactionId = sanitize_input($conn, $transactionId);
+    $sql = "SELECT transaction_id FROM transactions WHERE transaction_id = '$transactionId' AND booking_entry = '$booking_entry' AND transaction_type = '$transaction_type' LIMIT 1";
     $result = $conn->query($sql);
     return $result->num_rows > 0;
 }
@@ -137,7 +137,7 @@ function runScript() {
 
             // Prepare and execute SQL INSERT statement for each transaction
             foreach ($transactions['transactions'] as $transaction) {
-                $transaction_id       = isset($transaction['transactionId'])        ? sanitize_input($conn, $transaction['transactionId'])           : '';
+                $transactionId       = isset($transaction['transactionId'])        ? sanitize_input($conn, $transaction['transactionId'])           : '';
                 $orderId              = isset($transaction['orderId'])              ? sanitize_input($conn, $transaction['orderId'])                 : '';
                 $payoutId             = isset($transaction['payoutId'])             ? sanitize_input($conn, $transaction['payoutId'])                : '';
                 $salesRecordReference = isset($transaction['salesRecordReference']) ? sanitize_input($conn, $transaction['salesRecordReference'])    : '';
@@ -165,16 +165,16 @@ function runScript() {
                 }
 
                 // Check if transaction already exists
-                if (!transaction_exists($conn, $transaction_id, $bookingEntry, $transactionType)) {
+                if (!transaction_exists($conn, $transactionId, $bookingEntry, $transactionType)) {
                     // Sanitize the data and insert the transaction into the database
                     $sql = "INSERT INTO transactions (transaction_id, order_id, payout_id, sales_record_reference, buyer_username, transaction_type, amount_value, booking_entry, transaction_date, transaction_status, transaction_memo, payments_entity, references_json, fee_type, json) 
-                            VALUES ('$transaction_id', '$orderId', '$payoutId', '$salesRecordReference', '$buyer_username', '$transactionType', '$amount_value', '$bookingEntry', '$transactionDate', '$transactionStatus', '$transactionMemo', '$paymentsEntity', '$references', '$feeType', '$fullTransaction')";
+                            VALUES ('$transactionId', '$orderId', '$payoutId', '$salesRecordReference', '$buyer_username', '$transactionType', '$amount_value', '$bookingEntry', '$transactionDate', '$transactionStatus', '$transactionMemo', '$paymentsEntity', '$references', '$feeType', '$fullTransaction')";
 
                     if ($conn->query($sql) === TRUE) {$added += 1;}
                     else {echo "Error Adding Record: " . $sql . "<br>" . $conn->error;}
                 } else {
                     // Fetch the current orderId and transactionStatus from the database
-                    $sql                      = "SELECT order_id, transaction_status FROM transactions WHERE transaction_id = '$transaction_id' AND booking_entry = '$bookingEntry' AND transaction_type = '$transactionType'";
+                    $sql                      = "SELECT order_id, transaction_status FROM transactions WHERE transaction_id = '$transactionId' AND booking_entry = '$bookingEntry' AND transaction_type = '$transactionType'";
                     $result                   = $conn->query($sql);
                     $row                      = $result->fetch_assoc();
                     $currentOrderId           = $row['order_id'];
@@ -198,7 +198,7 @@ function runScript() {
                             references_json        = '$references', 
                             fee_type               = '$feeType', 
                             json                   = '$fullTransaction' 
-                            WHERE transaction_id   = '$transaction_id' AND booking_entry = '$bookingEntry' AND transaction_type = '$transactionType'";
+                            WHERE transaction_id   = '$transactionId' AND booking_entry = '$bookingEntry' AND transaction_type = '$transactionType'";
 
                         if ($conn->query($updateSql) === TRUE) {$updated += 1;}
                         else {echo "Error Updating Record: " . $sql . "<br>" . $conn->error;}
