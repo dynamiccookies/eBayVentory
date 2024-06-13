@@ -13,6 +13,7 @@ if ($conn->connect_error) {
 
 $sql = "SELECT transaction_id, order_id, buyer_username, transaction_type, amount_value, booking_entry, transaction_date, transaction_status, transaction_memo, payments_entity, references_json, fee_type FROM transactions ORDER BY transaction_date DESC";
 $result = $conn->query($sql);
+if (!$result) echo "Error: "  . $conn->error;
 $conn->close();
 ?>
 <!DOCTYPE html>
@@ -70,7 +71,7 @@ $conn->close();
         </thead>
         <tbody>
             <?php
-            if ($result->num_rows > 0) {
+            if (isset($result) && ($result->num_rows > 0)) {
                 while($row = $result->fetch_assoc()) {
                     $order = ($row["order_id"] ? "<a href='https://www.ebay.com/sh/ord/details?orderid=" . $row["order_id"] . "' target='_blank'>" . $row["order_id"] . "</a>" : $row["order_id"]);
                     echo "<tr>
