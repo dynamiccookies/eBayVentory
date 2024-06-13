@@ -6,24 +6,30 @@ include_once 'db_config.php';
 $apiUrl = "https://apiz.ebay.com/sell/finances/v1/transaction?limit=1000";
 
 // Functions
+/**
+ * Creates the 'transactions' table in the database if it does not already exist.
+ * The table includes various fields to store transaction-related information.
+ *
+ * @param mysqli $conn The database connection object.
+ */
 function createTransactionsTable($conn) {
     $sql = "CREATE TABLE IF NOT EXISTS transactions (
-        ID INT(6) UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-        transaction_id VARCHAR(50) NOT NULL,
-        order_id VARCHAR(50),
-        payout_id VARCHAR(50),
+        ID                     INT(6) UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+        transaction_id         VARCHAR(50) NOT NULL,
+        order_id               VARCHAR(50),
+        payout_id              VARCHAR(50),
         sales_record_reference VARCHAR(50),
-        buyer_username VARCHAR(100),
-        transaction_type VARCHAR(50),
-        amount_value DECIMAL(10, 2),
-        booking_entry VARCHAR(50),
-        transaction_date DATETIME,
-        transaction_status VARCHAR(50),
-        transaction_memo VARCHAR(255),
-        payments_entity VARCHAR(100),
-        references_json TEXT,
-        fee_type VARCHAR(50),
-        json TEXT
+        buyer_username         VARCHAR(100),
+        transaction_type       VARCHAR(50),
+        amount_value           DECIMAL(10, 2),
+        booking_entry          VARCHAR(50),
+        transaction_date       DATETIME,
+        transaction_status     VARCHAR(50),
+        transaction_memo       VARCHAR(255),
+        payments_entity        VARCHAR(100),
+        references_json        TEXT,
+        fee_type               VARCHAR(50),
+        json                   TEXT
     )";
 
     if ($conn->query($sql) === TRUE) {
@@ -34,6 +40,13 @@ function createTransactionsTable($conn) {
     }
 }
 
+/**
+ * Converts an ISO datetime string to a specified timezone and formats it to 'Y-m-d H:i:s'.
+ *
+ * @param string $iso_datetime_str The ISO datetime string to be converted.
+ * @param string $target_timezone The target timezone for conversion. Default is 'America/Chicago'.
+ * @return string The formatted datetime string.
+ */
 function convert_date($iso_datetime_str, $target_timezone = 'America/Chicago') {
     // Create a DateTime object from the ISO datetime string
     $datetime = new DateTime($iso_datetime_str, new DateTimeZone($target_timezone));
@@ -41,10 +54,27 @@ function convert_date($iso_datetime_str, $target_timezone = 'America/Chicago') {
     // Format the datetime and return
     return $datetime->format('Y-m-d H:i:s');
 }
+
+/**
+ * Sanitizes input to prevent SQL injection by escaping special characters.
+ *
+ * @param mysqli $conn The database connection object.
+ * @param string $input The input string to be sanitized.
+ * @return string The sanitized input string.
+ */
 function sanitize_input($conn, $input) {
     return $conn->real_escape_string($input);
 }
 
+/**
+ * Checks if a transaction with the specified transaction ID, booking entry, and transaction type exists in the 'transactions' table.
+ *
+ * @param mysqli $conn The database connection object.
+ * @param string $transaction_id The transaction ID to check.
+ * @param string $booking_entry The booking entry to check.
+ * @param string $transaction_type The transaction type to check.
+ * @return bool True if the transaction exists, false otherwise.
+ */
 function transaction_exists($conn, $transaction_id, $booking_entry, $transaction_type) {
     $transaction_id = sanitize_input($conn, $transaction_id);
     $sql = "SELECT transaction_id FROM transactions WHERE transaction_id = '$transaction_id' AND booking_entry = '$booking_entry' AND transaction_type = '$transaction_type' LIMIT 1";
@@ -52,6 +82,20 @@ function transaction_exists($conn, $transaction_id, $booking_entry, $transaction
     return $result->num_rows > 0;
 }
 
+
+/**
+ * Executes the main script to fetch transaction data from the eBay API and update the local database.
+ * The script performs the following steps:
+ * 1. Initializes a cURL session to call the eBay API.
+ * 2. Parses the API response containing transaction data.
+ * 3. Connects to the MySQL database.
+ * 4. Checks if the 'transactions' table exists and creates it if necessary.
+ * 5. Iterates over each transaction in the API response:
+ *    a. Sanitizes input data.
+ *    b. Checks if the transaction already exists in the database.
+ *    c. Inserts new transactions or updates existing ones if necessary.
+ * 6. Closes the database connection and outputs the result.
+ */
 function runScript() {
     global $apiUrl, $accessToken, $servername, $username, $password, $dbname;
 
