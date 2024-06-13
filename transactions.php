@@ -151,7 +151,7 @@ function runScript() {
                 $paymentsEntity       = isset($transaction['paymentsEntity'])       ? sanitize_input($conn, $transaction['paymentsEntity'])          : '';
                 $references           = isset($transaction['references'])           ? sanitize_input($conn, json_encode($transaction['references'])) : '';
                 $feeType              = isset($transaction['feeType'])              ? sanitize_input($conn, $transaction['feeType'])                 : '';
-                $transaction          = sanitize_input($conn, json_encode($transaction));
+                $fullTransaction      = sanitize_input($conn, json_encode($transaction));
 
                 // Check if orderId is blank and references field exists
                 if (empty($orderId) && isset($transaction['references'])) {
@@ -169,7 +169,7 @@ function runScript() {
                 if (!transaction_exists($conn, $transaction_id, $bookingEntry, $transactionType)) {
                     // Sanitize the data and insert the transaction into the database
                     $sql = "INSERT INTO transactions (transaction_id, order_id, payout_id, sales_record_reference, buyer_username, transaction_type, amount_value, booking_entry, transaction_date, transaction_status, transaction_memo, payments_entity, references_json, fee_type, json) 
-                            VALUES ('$transaction_id', '$orderId', '$payoutId', '$salesRecordReference', '$buyer_username', '$transactionType', '$amount_value', '$bookingEntry', '$transactionDate', '$transactionStatus', '$transactionMemo', '$paymentsEntity', '$references', '$feeType', '$transaction')";
+                            VALUES ('$transaction_id', '$orderId', '$payoutId', '$salesRecordReference', '$buyer_username', '$transactionType', '$amount_value', '$bookingEntry', '$transactionDate', '$transactionStatus', '$transactionMemo', '$paymentsEntity', '$references', '$feeType', '$fullTransaction')";
 
                     if ($conn->query($sql) === TRUE) {$added += 1;}
                     else {echo "Error Adding Record: " . $sql . "<br>" . $conn->error;}
@@ -198,7 +198,7 @@ function runScript() {
                             payments_entity        = '$paymentsEntity', 
                             references_json        = '$references', 
                             fee_type               = '$feeType', 
-                            json                   = '$transaction' 
+                            json                   = '$fullTransaction' 
                             WHERE transaction_id   = '$transaction_id' AND booking_entry = '$bookingEntry' AND transaction_type = '$transactionType'";
 
                         if ($conn->query($updateSql) === TRUE) {$updated += 1;}
