@@ -41,7 +41,10 @@ jobs:
         username: ${{ secrets.DEV_FTP_USERNAME }}
         password: ${{ secrets.DEV_FTP_PASSWORD }}
         server-dir: /test/
-        exclude: db_config.php
+        exclude: |
+          db_config.php
+          LICENSE
+          README.md
 
     - name: 📂 Sync files to DEV
       if: contains(github.ref, 'refs/heads/dev')
@@ -51,4 +54,7 @@ jobs:
         username: ${{ secrets.DEV_FTP_USERNAME }}
         password: ${{ secrets.DEV_FTP_PASSWORD }}
         server-dir: /dev/
-        exclude: db_config.php
+        exclude: |
+          db_config.php
+          LICENSE
+          README.md
