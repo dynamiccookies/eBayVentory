@@ -207,7 +207,7 @@ function runScript() {
             $conn->close();
             
             echo $added . ' out of ' . $total . ' transactions added. ';
-            if ($updated > 0) $updated . ' transactions updated.';
+            if ($updated > 0) echo $updated . ' transactions updated.';
 
         } else {
             echo "Failed to fetch transactions. HTTP Status Code: " . $httpCode;
